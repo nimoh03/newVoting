@@ -13,7 +13,7 @@ import NomineeDashboard from "./pages/NomineeDashboard";
 import SuperAdminDashboard from "./pages/SuperAdminDashboard";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
-import { AuthProvider } from "../context/AuthContext";
+import { AuthProvider } from "../context/Authcontext";
 import ProtectedRoute from "../context/ProtectedRoute";
 const queryClient = new QueryClient();
 
