@@ -1,46 +1,202 @@
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TrendingUp, Users, Mail, Phone, Calendar, DollarSign, Eye, Download } from "lucide-react";
+import {
+  TrendingUp,
+  Users,
+  Mail,
+  Phone,
+  Calendar,
+  DollarSign,
+  Eye,
+  Download,
+  Loader2,
+} from "lucide-react";
+
+import { useAuth } from "../../context/Authcontext";
 
 const NomineeDashboard = () => {
-  // Mock data - in real implementation, this would come from authenticated user's data
-  const nomineeData = {
-    id: 1,
-    name: "Adebayo Ogundimu",
-    business: "TechNova Solutions",
-    category: "Technology",
-    bio: "Innovative fintech solutions for rural banking access",
-    email: "adebayo@technova.com",
-    phone: "+234 808 123 4567",
-    registrationDate: "2025-01-15",
-    totalVotes: 1247,
-    totalEarnings: 62350, // ₦50 per vote
-    rank: 2
+  const [nomineeData, setNomineeData] = useState(null);
+  const [recentVotes, setRecentVotes] = useState([]);
+  const [voteStats, setVoteStats] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { userId } = useAuth();
+
+  const API_BASE_URL = "http://placid-002-site24.qtempurl.com/api/v1";
+  const API_KEY = "H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH";
+
+  const fetchNomineeData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(`${API_BASE_URL}/nominee/id?Id=${userId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH`,
+          // Alternative header format if the above doesn't work:
+          "X-API-Key": "H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch nominee data: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+
+      // Update state with API data
+      setNomineeData({
+        id: data.id || userId,
+        name: data.name || data.data.fullName || "Unknown Nominee",
+        business:
+          data.data.companyName ||
+          data.business ||
+          data.businessName ||
+          "Business Name Not Available",
+        category:
+          data.data.category || data.businessCategory || "Uncategorized",
+        bio: data.bio || data.description || "No bio available",
+        email: data.email || "Email not provided",
+        phone: data.phone || data.phoneNumber || "Phone not provided",
+        registrationDate:
+          data.registrationDate ||
+          data.createdAt ||
+          new Date().toISOString().split("T")[0],
+        totalVotes: data.totalVotes || data.votes || 0,
+        totalEarnings: (data.totalVotes || data.votes || 0) * 50, // ₦50 per vote
+        rank: data.rank || data.position || 0,
+        totalVoters: data.totalVoters || data.uniqueVoters || 0,
+      });
+
+      // Set recent votes (adapt field names based on API response)
+      setRecentVotes(data.recentVotes || data.votes || []);
+
+      // Calculate vote stats
+      const totalVotes = data.totalVotes || data.votes || 0;
+      const totalAmount = totalVotes * 50;
+
+      setVoteStats([
+        {
+          period: "Today",
+          votes: data.todayVotes || 0,
+          amount: (data.todayVotes || 0) * 50,
+        },
+        {
+          period: "This Week",
+          votes: data.weeklyVotes || 0,
+          amount: (data.weeklyVotes || 0) * 50,
+        },
+        {
+          period: "This Month",
+          votes: data.monthlyVotes || 0,
+          amount: (data.monthlyVotes || 0) * 50,
+        },
+        {
+          period: "All Time",
+          votes: totalVotes,
+          amount: totalAmount,
+        },
+      ]);
+    } catch (err) {
+      console.error("Error fetching nominee data:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const recentVotes = [
-    { id: 1, voterName: "Kemi Adeyemi", voterEmail: "kemi.a@email.com", voterPhone: "+234 801 234 5678", votes: 5, amount: 250, date: "2025-01-20 14:30" },
-    { id: 2, voterName: "Tunde Bakare", voterEmail: "tunde.b@email.com", voterPhone: "+234 802 345 6789", votes: 2, amount: 100, date: "2025-01-20 12:15" },
-    { id: 3, voterName: "Funmi Olarewaju", voterEmail: "funmi.o@email.com", voterPhone: "+234 803 456 7890", votes: 10, amount: 500, date: "2025-01-20 09:45" },
-    { id: 4, voterName: "Samuel Adebisi", voterEmail: "samuel.a@email.com", voterPhone: "+234 804 567 8901", votes: 1, amount: 50, date: "2025-01-19 16:20" },
-    { id: 5, voterName: "Aisha Mohammed", voterEmail: "aisha.m@email.com", voterPhone: "+234 805 678 9012", votes: 3, amount: 150, date: "2025-01-19 11:30" },
-  ];
+  useEffect(() => {
+    fetchNomineeData();
+  }, [userId]);
 
-  const voteStats = [
-    { period: "Today", votes: 18, amount: 900 },
-    { period: "This Week", votes: 89, amount: 4450 },
-    { period: "This Month", votes: 247, amount: 12350 },
-    { period: "All Time", votes: 1247, amount: 62350 },
-  ];
+  const handleRetry = () => {
+    fetchNomineeData();
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch {
+      return dateString;
+    }
+  };
+
+  const formatVoteDate = (dateString) => {
+    if (!dateString) return "N/A";
+    try {
+      return new Date(dateString).toLocaleString();
+    } catch {
+      return dateString;
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-festival-green" />
+            <p className="text-lg text-muted-foreground">
+              Loading your dashboard...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="text-red-500 mb-4">
+              <Eye className="w-12 h-12 mx-auto mb-2" />
+              <p className="text-lg font-semibold">Failed to Load Dashboard</p>
+            </div>
+            <p className="text-muted-foreground mb-4">{error}</p>
+            <Button onClick={handleRetry} variant="festival">
+              Try Again
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!nomineeData) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <p className="text-lg text-muted-foreground">No data available</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       {/* Header */}
       <section className="py-12 bg-gradient-primary text-primary-foreground">
         <div className="container mx-auto px-4">
@@ -48,44 +204,67 @@ const NomineeDashboard = () => {
             <Avatar className="w-24 h-24">
               <AvatarImage src="/placeholder-avatar.jpg" />
               <AvatarFallback className="text-2xl bg-primary-foreground text-festival-green">
-                {nomineeData.name.split(' ').map(n => n[0]).join('')}
+                {nomineeData.name
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")}
               </AvatarFallback>
             </Avatar>
             <div className="text-center md:text-left flex-1">
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">{nomineeData.name}</h1>
-              <p className="text-xl text-primary-foreground/90 mb-2">{nomineeData.business}</p>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                {nomineeData.name}
+              </h1>
+              <p className="text-xl text-primary-foreground/90 mb-2">
+                {nomineeData.business}
+              </p>
               <div className="flex flex-wrap justify-center md:justify-start gap-2">
-                <Badge className="bg-primary-foreground text-festival-green">{nomineeData.category}</Badge>
-                <Badge className="bg-festival-gold text-foreground">Rank #{nomineeData.rank}</Badge>
+                <Badge className="bg-primary-foreground text-festival-green text-black">
+                  {nomineeData.category}
+                </Badge>
+                {nomineeData.rank > 0 && (
+                  <Badge className="bg-festival-gold text-foreground">
+                    Rank #{nomineeData.rank}
+                  </Badge>
+                )}
                 <Badge className="bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30">
                   {nomineeData.totalVotes} votes
                 </Badge>
               </div>
             </div>
             <div className="text-center">
-              <div className="text-3xl font-bold">₦{nomineeData.totalEarnings.toLocaleString()}</div>
-              <div className="text-primary-foreground/80">Total Earnings Generated</div>
+              <div className="text-3xl font-bold">
+                {nomineeData.totalVoters}
+              </div>
+              <div className="text-primary-foreground/80">
+                Total Number of Voters
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Stats Overview */}
-      <section className="py-8">
+      {/* <section className="py-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {voteStats.map((stat, index) => (
               <Card key={index}>
                 <CardContent className="p-4 text-center">
-                  <div className="text-2xl font-bold text-festival-green">{stat.votes}</div>
-                  <div className="text-xs text-muted-foreground mb-1">{stat.period} Votes</div>
-                  <div className="text-sm font-semibold">₦{stat.amount.toLocaleString()}</div>
+                  <div className="text-2xl font-bold text-festival-green">
+                    {stat.votes}
+                  </div>
+                  <div className="text-xs text-muted-foreground mb-1">
+                    {stat.period} Votes
+                  </div>
+                  <div className="text-sm font-semibold">
+                    ₦{stat.amount.toLocaleString()}
+                  </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Main Content */}
       <section className="py-8">
@@ -106,7 +285,9 @@ const NomineeDashboard = () => {
                         <Users className="w-5 h-5 text-festival-green" />
                         Recent Votes
                       </CardTitle>
-                      <CardDescription>People who have voted for you</CardDescription>
+                      <CardDescription>
+                        People who have voted for you
+                      </CardDescription>
                     </div>
                     <Button variant="festival-outline" size="sm">
                       <Download className="w-4 h-4 mr-2" />
@@ -115,39 +296,69 @@ const NomineeDashboard = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {recentVotes.map((vote) => (
-                      <div key={vote.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-festival-light-green/20 transition-colors">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-4">
-                            <Avatar className="w-10 h-10">
-                              <AvatarFallback className="bg-festival-green text-primary-foreground">
-                                {vote.voterName.split(' ').map(n => n[0]).join('')}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-semibold">{vote.voterName}</div>
-                              <div className="text-sm text-muted-foreground flex items-center gap-4">
-                                <span className="flex items-center gap-1">
-                                  <Mail className="w-3 h-3" />
-                                  {vote.voterEmail}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Phone className="w-3 h-3" />
-                                  {vote.voterPhone}
-                                </span>
+                  {recentVotes.length > 0 ? (
+                    <div className="space-y-4">
+                      {recentVotes.map((vote, index) => (
+                        <div
+                          key={vote.id || index}
+                          className="flex items-center justify-between p-4 border rounded-lg hover:bg-festival-light-green/20 transition-colors"
+                        >
+                          <div className="flex-1">
+                            <div className="flex items-center gap-4">
+                              <Avatar className="w-10 h-10">
+                                <AvatarFallback className="bg-festival-green text-primary-foreground">
+                                  {(vote.voterName || vote.name || "Anonymous")
+                                    .split(" ")
+                                    .map((n) => n[0])
+                                    .join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <div className="font-semibold">
+                                  {vote.voterName ||
+                                    vote.name ||
+                                    "Anonymous Voter"}
+                                </div>
+                                <div className="text-sm text-muted-foreground flex items-center gap-4">
+                                  <span className="flex items-center gap-1">
+                                    <Mail className="w-3 h-3" />
+                                    {vote.voterEmail ||
+                                      vote.email ||
+                                      "Email not provided"}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Phone className="w-3 h-3" />
+                                    {vote.voterPhone ||
+                                      vote.phone ||
+                                      "Phone not provided"}
+                                  </span>
+                                </div>
                               </div>
                             </div>
                           </div>
+                          <div className="text-right">
+                            <div className="font-bold text-festival-green">
+                              {vote.votes || vote.voteCount || 1} votes
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              ₦
+                              {(
+                                (vote.votes || vote.voteCount || 1) * 50
+                              ).toLocaleString()}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {formatVoteDate(vote.date || vote.createdAt)}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-right">
-                          <div className="font-bold text-festival-green">{vote.votes} votes</div>
-                          <div className="text-sm text-muted-foreground">₦{vote.amount}</div>
-                          <div className="text-xs text-muted-foreground">{vote.date}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                      <p>No votes yet</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>
@@ -165,15 +376,24 @@ const NomineeDashboard = () => {
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
                         <span>Daily Average</span>
-                        <span className="font-semibold">12.7 votes</span>
+                        <span className="font-semibold">
+                          {nomineeData.totalVotes > 0
+                            ? (nomineeData.totalVotes / 30).toFixed(1)
+                            : "0"}{" "}
+                          votes
+                        </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span>Peak Day</span>
-                        <span className="font-semibold">Jan 18 (45 votes)</span>
+                        <span>Total Votes</span>
+                        <span className="font-semibold">
+                          {nomineeData.totalVotes} votes
+                        </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span>Growth Rate</span>
-                        <span className="font-semibold text-festival-green">+23%</span>
+                        <span>Current Rank</span>
+                        <span className="font-semibold text-festival-green">
+                          #{nomineeData.rank || "Unranked"}
+                        </span>
                       </div>
                     </div>
                   </CardContent>
@@ -189,16 +409,20 @@ const NomineeDashboard = () => {
                   <CardContent>
                     <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                        <span>Average per Vote</span>
+                        <span>Rate per Vote</span>
                         <span className="font-semibold">₦50</span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span>Largest Single Vote</span>
-                        <span className="font-semibold">₦2,500 (50 votes)</span>
+                        <span>Total Earnings</span>
+                        <span className="font-semibold">
+                          ₦{nomineeData.totalEarnings.toLocaleString()}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center">
-                        <span>Monthly Growth</span>
-                        <span className="font-semibold text-festival-green">+₦12,350</span>
+                        <span>Unique Voters</span>
+                        <span className="font-semibold text-festival-green">
+                          {nomineeData.totalVoters}
+                        </span>
                       </div>
                     </div>
                   </CardContent>
@@ -216,32 +440,44 @@ const NomineeDashboard = () => {
                   <div className="grid md:grid-cols-2 gap-6">
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm font-semibold text-muted-foreground">Business Name</label>
+                        <label className="text-sm font-semibold text-muted-foreground">
+                          Business Name
+                        </label>
                         <div className="text-lg">{nomineeData.business}</div>
                       </div>
                       <div>
-                        <label className="text-sm font-semibold text-muted-foreground">Category</label>
+                        <label className="text-sm font-semibold text-muted-foreground">
+                          Category
+                        </label>
                         <div className="text-lg">{nomineeData.category}</div>
                       </div>
                       <div>
-                        <label className="text-sm font-semibold text-muted-foreground">Email</label>
+                        <label className="text-sm font-semibold text-muted-foreground">
+                          Email
+                        </label>
                         <div className="text-lg">{nomineeData.email}</div>
                       </div>
                     </div>
                     <div className="space-y-4">
                       <div>
-                        <label className="text-sm font-semibold text-muted-foreground">Phone</label>
+                        <label className="text-sm font-semibold text-muted-foreground">
+                          Phone
+                        </label>
                         <div className="text-lg">{nomineeData.phone}</div>
                       </div>
                       <div>
-                        <label className="text-sm font-semibold text-muted-foreground">Registration Date</label>
+                        <label className="text-sm font-semibold text-muted-foreground">
+                          Registration Date
+                        </label>
                         <div className="text-lg flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-muted-foreground" />
-                          {nomineeData.registrationDate}
+                          {formatDate(nomineeData.registrationDate)}
                         </div>
                       </div>
                       <div>
-                        <label className="text-sm font-semibold text-muted-foreground">Bio</label>
+                        <label className="text-sm font-semibold text-muted-foreground">
+                          Bio
+                        </label>
                         <div className="text-lg">{nomineeData.bio}</div>
                       </div>
                     </div>

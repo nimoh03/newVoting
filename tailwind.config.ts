@@ -41,12 +41,12 @@ export default {
 					dark: 'hsl(var(--secondary-dark))'
 				},
 				festival: {
-					green: 'hsl(var(--festival-green))',
-					gold: 'hsl(var(--festival-gold))',
-					emerald: 'hsl(var(--festival-emerald))',
-					teal: 'hsl(var(--festival-teal))',
 					purple: 'hsl(var(--festival-purple))',
-					'light-green': 'hsl(var(--festival-light-green))'
+					pink: 'hsl(var(--festival-pink))',
+					orange: 'hsl(var(--festival-orange))',
+					red: 'hsl(var(--festival-red))',
+					yellow: 'hsl(var(--festival-yellow))',
+					'light-purple': 'hsl(var(--festival-light-purple))'
 				},
 				destructive: {
 					DEFAULT: 'hsl(var(--destructive))',
@@ -101,11 +101,11 @@ export default {
 				},
 				'festival-glow': {
 					'0%, 100%': { 
-						boxShadow: '0 0 30px hsl(var(--festival-green) / 0.4), 0 0 60px hsl(var(--festival-green) / 0.2)',
+						boxShadow: '0 0 30px hsl(var(--festival-purple) / 0.4), 0 0 60px hsl(var(--festival-purple) / 0.2)',
 						transform: 'scale(1)' 
 					},
 					'50%': { 
-						boxShadow: '0 0 50px hsl(var(--festival-green) / 0.6), 0 0 100px hsl(var(--festival-green) / 0.4)',
+						boxShadow: '0 0 50px hsl(var(--festival-purple) / 0.6), 0 0 100px hsl(var(--festival-purple) / 0.4)',
 						transform: 'scale(1.05)' 
 					}
 				},
@@ -115,28 +115,28 @@ export default {
 				},
 				'aurora-dance': {
 					'0%, 100%': { 
-						background: 'linear-gradient(135deg, hsl(var(--festival-purple)) 0%, hsl(var(--festival-teal)) 25%, hsl(var(--festival-green)) 50%, hsl(var(--festival-gold)) 100%)',
+						background: 'linear-gradient(135deg, hsl(var(--festival-purple)) 0%, hsl(var(--festival-pink)) 25%, hsl(var(--festival-orange)) 50%, hsl(var(--festival-yellow)) 100%)',
 						transform: 'rotate(0deg) scale(1)'
 					},
 					'25%': { 
-						background: 'linear-gradient(135deg, hsl(var(--festival-teal)) 0%, hsl(var(--festival-green)) 25%, hsl(var(--festival-gold)) 50%, hsl(var(--festival-purple)) 100%)',
+						background: 'linear-gradient(135deg, hsl(var(--festival-pink)) 0%, hsl(var(--festival-orange)) 25%, hsl(var(--festival-yellow)) 50%, hsl(var(--festival-purple)) 100%)',
 						transform: 'rotate(90deg) scale(1.1)'
 					},
 					'50%': { 
-						background: 'linear-gradient(135deg, hsl(var(--festival-green)) 0%, hsl(var(--festival-gold)) 25%, hsl(var(--festival-purple)) 50%, hsl(var(--festival-teal)) 100%)',
+						background: 'linear-gradient(135deg, hsl(var(--festival-orange)) 0%, hsl(var(--festival-yellow)) 25%, hsl(var(--festival-purple)) 50%, hsl(var(--festival-pink)) 100%)',
 						transform: 'rotate(180deg) scale(1)'
 					},
 					'75%': { 
-						background: 'linear-gradient(135deg, hsl(var(--festival-gold)) 0%, hsl(var(--festival-purple)) 25%, hsl(var(--festival-teal)) 50%, hsl(var(--festival-green)) 100%)',
+						background: 'linear-gradient(135deg, hsl(var(--festival-yellow)) 0%, hsl(var(--festival-purple)) 25%, hsl(var(--festival-pink)) 50%, hsl(var(--festival-orange)) 100%)',
 						transform: 'rotate(270deg) scale(1.1)'
 					}
 				},
 				'pulse-glow': {
 					'0%, 100%': { 
-						boxShadow: '0 0 20px hsl(var(--festival-gold) / 0.5)' 
+						boxShadow: '0 0 20px hsl(var(--festival-orange) / 0.5)' 
 					},
 					'50%': { 
-						boxShadow: '0 0 40px hsl(var(--festival-gold) / 0.8), 0 0 80px hsl(var(--festival-gold) / 0.3)' 
+						boxShadow: '0 0 40px hsl(var(--festival-orange) / 0.8), 0 0 80px hsl(var(--festival-orange) / 0.3)' 
 					}
 				},
 				'float-up': {
@@ -179,7 +179,7 @@ export default {
 			},
 			backgroundImage: {
 				'gradient-primary': 'var(--gradient-primary)',
-				'gradient-gold': 'var(--gradient-gold)',
+				'gradient-orange': 'var(--gradient-orange)',
 				'gradient-hero': 'var(--gradient-hero)',
 				'gradient-aurora': 'var(--gradient-aurora)',
 				'gradient-luxury': 'var(--gradient-luxury)',
@@ -187,7 +187,7 @@ export default {
 			},
 			boxShadow: {
 				'primary': 'var(--shadow-primary)',
-				'gold': 'var(--shadow-gold)',
+				'orange': 'var(--shadow-orange)',
 				'elegant': 'var(--shadow-elegant)',
 				'glass': 'var(--shadow-glass)',
 				'glow': 'var(--shadow-glow)',

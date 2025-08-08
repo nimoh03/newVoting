@@ -2,10 +2,13 @@ import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
+import Icon from '../../public/icon.png'
 
 const Navbar = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isLoggedIn } = useAuth();
 
   const navigationItems = [
     { label: "Home", href: "/" },
@@ -14,24 +17,32 @@ const Navbar = () => {
     { label: "Free Pass", href: "/get-free-pass" },
     { label: "Dinner Tickets", href: "/buy-dinner-ticket" },
     { label: "Vote Now", href: "/voting" },
-    { label: "Dashboard", href: "/login" },
+     {
+    label: "Dashboard",
+    href: isLoggedIn ? "/nominee-dashboard" : "/login",
+  },
   ];
 
   return (
     <nav className="bg-background/95 backdrop-blur-sm border-b border-border sticky top-0 z-50">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className=" mx-auto px-10">
+        <div className="flex items-center justify-between h-24">
           {/* Logo */}
-          <div className="flex items-center cursor-pointer" onClick={() => navigate("/")}>
-            <div className="bg-gradient-primary p-2 rounded-lg mr-3">
-              <span className="text-primary-foreground font-bold text-xl">OYF</span>
+           <div className="flex items-center cursor-pointer" onClick={() => navigate("/")}>
+            <div className="w-12 h-12 mr-3 flex items-center justify-center">
+              <img 
+                src={Icon} 
+                alt=" Logo" 
+                className="w-10 h-10 object-contain rounded-sm"
+              />
             </div>
-            <div className="hidden md:block">
-              <h1 className="font-bold text-lg text-foreground">Oyo Youth Festival</h1>
-              <p className="text-xs text-muted-foreground">Made in Ibadan 2025</p>
+            <div className="hidden md:block ">
+             <h1 className="font-bold text-lg text-foreground text-[20px]" >Ibadan Market Square</h1>
+              <p className="text-xs text-muted-foreground text-[18px]">Made in Ibadan 2025</p>
             </div>
           </div>
 
+          
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center space-x-1">
             {navigationItems.map((item) => (
@@ -40,7 +51,7 @@ const Navbar = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate(item.href)}
-                className="text-foreground hover:text-festival-green"
+                className="text-foreground hover:text-festival-green text-[18px]"
               >
                 {item.label}
               </Button>
