@@ -33,8 +33,8 @@ const NomineeDashboard = () => {
   const [error, setError] = useState(null);
   const { userId } = useAuth();
 
-  const API_BASE_URL = "http://placid-002-site24.qtempurl.com/api/v1";
-  const API_KEY = "H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH";
+  const API_BASE_URL = "https://api.ibadanmarketsquare.ng/api/v1";
+  
 
   const fetchNomineeData = async () => {
     try {
@@ -61,7 +61,7 @@ const NomineeDashboard = () => {
 
       // Update state with API data
       setNomineeData({
-        id: data.id || userId,
+        id: data.data.id || userId,
         name: data.name || data.data.fullName || "Unknown Nominee",
         business:
           data.data.companyName ||
@@ -70,9 +70,10 @@ const NomineeDashboard = () => {
           "Business Name Not Available",
         category:
           data.data.category || data.businessCategory || "Uncategorized",
-        bio: data.bio || data.description || "No bio available",
-        email: data.email || "Email not provided",
-        phone: data.phone || data.phoneNumber || "Phone not provided",
+        bio: data.data.bio || data.description || "No bio available",
+        email: data.data.emailAddress || "Email not provided",
+        phone:
+          data.data.phoneNumber || data.phoneNumber || "Phone not provided",
         registrationDate:
           data.registrationDate ||
           data.createdAt ||
@@ -270,7 +271,7 @@ const NomineeDashboard = () => {
       <section className="py-8">
         <div className="container mx-auto px-4">
           <Tabs defaultValue="votes" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto mb-8">
+            <TabsList className="flex w-full max-w-md mx-auto mb-8">
               <TabsTrigger value="votes">Recent Votes</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="profile">Profile</TabsTrigger>

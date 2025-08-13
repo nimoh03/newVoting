@@ -16,7 +16,6 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/Authcontext"; // adjust path
 
-
 const LoginPage = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -30,12 +29,13 @@ const LoginPage = () => {
   const [showLargeApplyForm, setShowLargeApplyForm] = useState(false);
 
   // Fetch categories on component mount
+  // Updated useEffect for fetching categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         setLoadingCategories(true);
         const response = await fetch(
-          "http://placid-002-site24.qtempurl.com/api/v1/awardcategory",
+          "https://api.ibadanmarketsquare.ng/api/v1/businesscategory",
           {
             headers: {
               "x-api-key": "H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH",
@@ -47,7 +47,13 @@ const LoginPage = () => {
 
         const data = await response.json();
         const categoryArray = Array.isArray(data.data) ? data.data : [];
-        setCategories(categoryArray);
+
+        // Filter categories to only show those where award === true
+        const awardCategories = categoryArray.filter(
+          (category) => category.award === true
+        );
+
+        setCategories(awardCategories);
       } catch (error) {
         console.error("Failed to fetch categories:", error);
         toast({
@@ -62,7 +68,6 @@ const LoginPage = () => {
 
     fetchCategories();
   }, [toast]);
-
   // const handleNomineeLogin = (e) => {
   //   e.preventDefault();
   //   toast({
@@ -80,93 +85,90 @@ const LoginPage = () => {
     });
     navigate("/super-admin");
   };
-    const [loginData, setLoginData] = useState({
-      loginEmail: "",
-      loginPassword: "",
-    });
-    const [isLoading, setIsLoading] = useState(false);
+  const [loginData, setLoginData] = useState({
+    loginEmail: "",
+    loginPassword: "",
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
-    const handleInputChange = (e) => {
-      const { name, value } = e.target;
-      setLoginData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    };
-
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setLoginData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
 
   const handleNomineeLogin = async (e) => {
-      e.preventDefault();
-      setIsLoading(true);
+    e.preventDefault();
+    setIsLoading(true);
 
-      // Set timeout for slow network detection
-      const timeoutId = setTimeout(() => {
-        toast({
-          title: "Network Slow",
-          description:
-            "Connection is taking longer than usual. Please refresh and try again.",
-          variant: "destructive",
-        });
-      }, 10000); // 10 seconds
+    // Set timeout for slow network detection
+    const timeoutId = setTimeout(() => {
+      toast({
+        title: "Network Slow",
+        description:
+          "Connection is taking longer than usual. Please refresh and try again.",
+        variant: "destructive",
+      });
+    }, 10000); // 10 seconds
 
-      try {
-        const response = await fetch(
-          "http://placid-002-site24.qtempurl.com/api/v1/account/authenticateuser",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH`,
-              // Alternative header format if the above doesn't work:
-              'X-API-Key': 'H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH'
-            },
-            body: JSON.stringify({
-              email: loginData.loginEmail,
-              password: loginData.loginPassword,
-               ip: "string",
-              browser: "string"
-            }),
-          }
-        );
-
-        // Clear timeout if request completes within 10 seconds
-        clearTimeout(timeoutId);
-
-        const data = await response.json();
-
-        if (response.ok) {
-          toast({
-            title: "Login Successful!",
-            description: "Welcome to your nominee dashboard.",
-          });
-
-          // Store auth token if provided in response
-           login(data.data.userId);
-        
-           
-          navigate("/nominee-dashboard");
-        } else {
-          toast({
-            title: "Login Failed",
-            description:
-              data.message || "Invalid credentials. Please try again.",
-            variant: "destructive",
-          });
+    try {
+      const response = await fetch(
+        "https://api.ibadanmarketsquare.ng/api/v1/account/authenticateuser",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH`,
+            // Alternative header format if the above doesn't work:
+            "X-API-Key": "H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH",
+          },
+          body: JSON.stringify({
+            email: loginData.loginEmail,
+            password: loginData.loginPassword,
+            ip: "string",
+            browser: "string",
+          }),
         }
-      } catch (error) {
-        // Clear timeout in case of error
-        clearTimeout(timeoutId);
+      );
 
-        console.error("Login error:", error);
+      // Clear timeout if request completes within 10 seconds
+      clearTimeout(timeoutId);
+
+      const data = await response.json();
+
+      if (response.ok) {
         toast({
-          title: "Connection Error",
-          description: "Unable to connect to server. Please try again later.",
+          title: "Login Successful!",
+          description: "Welcome to your nominee dashboard.",
+        });
+
+        // Store auth token if provided in response
+        login(data.data.userId);
+
+        navigate("/nominee-dashboard");
+      } else {
+        toast({
+          title: "Login Failed",
+          description: data.message || "Invalid credentials. Please try again.",
           variant: "destructive",
         });
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (error) {
+      // Clear timeout in case of error
+      clearTimeout(timeoutId);
+
+      console.error("Login error:", error);
+      toast({
+        title: "Connection Error",
+        description: "Unable to connect to server. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const uploadImage = async (imageFile) => {
     return new Promise((resolve, reject) => {
@@ -177,16 +179,13 @@ const LoginPage = () => {
       const formData = new FormData();
       formData.append("image", imageFile);
 
-      fetch(
-        "http://placid-002-site24.qtempurl.com/api/v1/catalogue/upload/image",
-        {
-          method: "POST",
-          headers: {
-            "x-api-key": "H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH",
-          },
-          body: formData,
-        }
-      )
+      fetch("https://api.ibadanmarketsquare.ng/api/v1/catalogue/upload/image", {
+        method: "POST",
+        headers: {
+          "x-api-key": "H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH",
+        },
+        body: formData,
+      })
         .then((response) => {
           clearTimeout(timeout);
           if (!response.ok) {
@@ -322,14 +321,14 @@ const LoginPage = () => {
         picture: photoUrl,
         biography: formData.get("biography"),
         password: formData.get("password"),
-        categoryId: selectedCategoryId, // Use the selected category ID
+        categoryId: selectedCategoryId,
         phoneNumber: formData.get("phoneNumber"),
         address: formData.get("address"),
         emailAddress: formData.get("email"),
       };
 
       const response = await fetch(
-        "http://placid-002-site24.qtempurl.com/api/v1/nominee",
+        "https://api.ibadanmarketsquare.ng/api/v1/nominee",
         {
           method: "POST",
           headers: {
@@ -342,60 +341,82 @@ const LoginPage = () => {
 
       const responseData = await response.json();
 
+      // Add debugging to see the actual response structure
+
       if (response.ok) {
+        // Fixed: Safe access to message property with multiple fallbacks
+        let successMessage =
+          "Your nomination has been submitted successfully. You will receive a confirmation email shortly.";
+
+        // Try different possible response structures
+        if (
+          responseData.message &&
+          Array.isArray(responseData.message) &&
+          responseData.message.length > 0
+        ) {
+          successMessage = responseData.message[0];
+        } else if (
+          responseData.message &&
+          typeof responseData.message === "string"
+        ) {
+          successMessage = responseData.message;
+        } else if (responseData.data && responseData.data.message) {
+          successMessage = responseData.data.message;
+        } else if (responseData.success && responseData.data) {
+          successMessage = "Application submitted successfully!";
+        }
+
         toast({
           title: "Application Submitted!",
-          description:
-            responseData.message ||
-            "Your nomination has been submitted successfully. You will receive a confirmation email shortly.",
+          description: successMessage,
         });
 
         // Reset form
         event.target.reset();
         setShowLargeApplyForm(false);
       } else {
-        // Handle different error status codes
-        let errorTitle = "Submission Failed";
-        let errorDescription = "Something went wrong. Please try again.";
+        // Fixed: Safe access to error message with multiple fallbacks
+        let errorMessage = "Something went wrong. Please try again.";
 
-        if (response.status >= 400 && response.status < 500) {
-          errorDescription =
-            responseData.message ||
-            responseData.error ||
-            `Invalid request: ${response.status}`;
-
-          if (response.status === 400) {
-            errorTitle = "Invalid Information";
-            errorDescription =
-              responseData.message ||
-              "Please check your information and try again.";
-          } else if (response.status === 409) {
-            errorTitle = "Account Exists";
-            errorDescription = "An account with this email already exists.";
-          } else if (response.status === 422) {
-            errorTitle = "Validation Error";
-            errorDescription =
-              "Please check all required fields and try again.";
-          }
-        } else if (response.status >= 500) {
-          errorTitle = "Server Error";
-          errorDescription =
-            "Server error. Please try again later or contact support.";
+        // Try different possible error response structures
+        if (
+          responseData.messages &&
+          Array.isArray(responseData.messages) &&
+          responseData.messages.length > 0
+        ) {
+          errorMessage = responseData.messages[0];
+        } else if (
+          responseData.message &&
+          Array.isArray(responseData.message) &&
+          responseData.message.length > 0
+        ) {
+          errorMessage = responseData.message[0];
+        } else if (
+          responseData.message &&
+          typeof responseData.message === "string"
+        ) {
+          errorMessage = responseData.message;
+        } else if (
+          responseData.error &&
+          typeof responseData.error === "string"
+        ) {
+          errorMessage = responseData.error;
+        } else if (responseData.data && responseData.data.error) {
+          errorMessage = responseData.data.error;
         }
 
         toast({
-          title: errorTitle,
-          description: errorDescription,
+          title: "Submission Failed",
+          description: errorMessage,
           variant: "destructive",
         });
       }
     } catch (error) {
       console.error("Submission error:", error);
-
       toast({
         title: "Network Error",
         description:
-          "Network error. Please check your connection and try again.",
+          "Unable to submit application. Please check your connection and try again.",
         variant: "destructive",
       });
     } finally {
@@ -425,115 +446,139 @@ const LoginPage = () => {
 
       {/* Improved Apply Form Modal */}
       {showLargeApplyForm && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center p-4 z-50 overflow-y-auto">
-          <div className="w-full max-w-4xl my-8 ">
-            <Card className="w-full shadow-2xl border-0 rounded-lg overflow-hidden">
-              <CardHeader className="relative pb-4 bg-gradient-to-r from-festival-green to-festival-emerald text-white">
+        <div className="fixed inset-0 flex items-start justify-center p-4 z-50 overflow-y-auto bg-black/80">
+          <div className="w-full max-w-4xl my-8">
+            <div className="w-full shadow-2xl border-0 rounded-lg overflow-hidden bg-white">
+              {/* Header */}
+              <div
+                className="relative pb-4 p-6 border-b border-gray-200"
+                style={{ backgroundColor: "#ffffff", color: "#000000" }}
+              >
                 <button
                   onClick={() => setShowLargeApplyForm(false)}
                   disabled={isFormDisabled}
-                  className="absolute right-4 top-4 p-2 hover:bg-white/20 rounded-full transition-colors disabled:opacity-50"
+                  className="absolute right-4 top-4 p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
+                  style={{ color: "#000000" }}
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5" style={{ color: "#000000" }} />
                 </button>
-                <CardTitle className="flex items-center gap-2 text-2xl">
-                  <UserPlus className="w-6 h-6" />
-                  Nomination Application Form
+                <h2
+                  className="flex items-center gap-2 text-2xl font-bold"
+                  style={{ color: "#000000" }}
+                >
+                  <UserPlus className="w-6 h-6" style={{ color: "#000000" }} />
+                  <span>Nomination Application Form</span>
                   {(isUploadingImages || isSubmittingApplication) && (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2
+                      className="w-5 h-5 animate-spin"
+                      style={{ color: "#000000" }}
+                    />
                   )}
-                </CardTitle>
-                <CardDescription className="text-white/90 text-base">
+                </h2>
+                <p className="text-base mt-2" style={{ color: "#666666" }}>
                   {isUploadingImages
                     ? "Uploading images, please wait..."
                     : isSubmittingApplication
                     ? "Finalizing your application..."
                     : "Apply to become a nominee for the Youth Excellence Awards"}
-                </CardDescription>
-              </CardHeader>
+                </p>
+              </div>
 
-              <CardContent className="p-6 max-h-[70vh] overflow-y-auto">
+              {/* Form Content */}
+              <div
+                className="p-6 max-h-[70vh] overflow-y-auto bg-white text-gray-900"
+                style={{ backgroundColor: "white", color: "black" }}
+              >
                 <form onSubmit={handleNomineeSignup} className="space-y-6">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Left Column */}
                     <div className="space-y-4">
                       <div>
-                        <Label htmlFor="name" className="text-sm font-medium">
-                          Full Name{" "}
-                        </Label>
-                        <Input
+                        <label
+                          htmlFor="name"
+                          className="block text-sm font-medium text-gray-900 mb-1"
+                        >
+                          Full Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
                           id="name"
                           name="name"
+                          type="text"
                           placeholder="Enter your full name"
                           disabled={isFormDisabled}
-                          className="mt-1"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-festival-green focus:border-festival-green disabled:bg-gray-100 disabled:cursor-not-allowed"
                           required
                         />
                       </div>
 
                       <div>
-                        <Label htmlFor="email" className="text-sm font-medium">
-                          Email Address
-                        </Label>
-                        <Input
+                        <label
+                          htmlFor="email"
+                          className="block text-sm font-medium text-gray-900 mb-1"
+                        >
+                          Email Address <span className="text-red-500">*</span>
+                        </label>
+                        <input
                           id="email"
                           name="email"
                           type="email"
                           placeholder="your.email@example.com"
                           disabled={isFormDisabled}
-                          className="mt-1"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-festival-green focus:border-festival-green disabled:bg-gray-100 disabled:cursor-not-allowed"
                           required
                         />
                       </div>
 
                       <div>
-                        <Label
+                        <label
                           htmlFor="companyName"
-                          className="text-sm font-medium"
+                          className="block text-sm font-medium text-gray-900 mb-1"
                         >
-                          Company Name{" "}
-                        </Label>
-                        <Input
+                          Company Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
                           id="companyName"
                           name="companyName"
+                          type="text"
                           placeholder="Your company name"
                           disabled={isFormDisabled}
-                          className="mt-1"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-festival-green focus:border-festival-green disabled:bg-gray-100 disabled:cursor-not-allowed"
                           required
                         />
                       </div>
 
                       <div>
-                        <Label
+                        <label
                           htmlFor="phoneNumber"
-                          className="text-sm font-medium"
+                          className="block text-sm font-medium text-gray-900 mb-1"
                         >
-                          Phone Number{" "}
-                        </Label>
-                        <Input
+                          Phone Number <span className="text-red-500">*</span>
+                        </label>
+                        <input
                           id="phoneNumber"
                           name="phoneNumber"
                           type="tel"
                           placeholder="Your phone number"
                           disabled={isFormDisabled}
-                          className="mt-1"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-festival-green focus:border-festival-green disabled:bg-gray-100 disabled:cursor-not-allowed"
                           required
                         />
                       </div>
 
                       <div>
-                        <Label
+                        <label
                           htmlFor="address"
-                          className="text-sm font-medium"
+                          className="block text-sm font-medium text-gray-900 mb-1"
                         >
-                          Address{" "}
-                        </Label>
-                        <Input
+                          Address <span className="text-red-500">*</span>
+                        </label>
+                        <input
                           id="address"
                           name="address"
+                          type="text"
                           placeholder="Your address"
                           disabled={isFormDisabled}
-                          className="mt-1"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-festival-green focus:border-festival-green disabled:bg-gray-100 disabled:cursor-not-allowed"
                           required
                         />
                       </div>
@@ -542,16 +587,17 @@ const LoginPage = () => {
                     {/* Right Column */}
                     <div className="space-y-4">
                       <div>
-                        <Label
+                        <label
                           htmlFor="biography"
-                          className="text-sm font-medium"
+                          className="block text-sm font-medium text-gray-900 mb-1"
                         >
-                          Biography{" "}
-                        </Label>
+                          Biography <span className="text-red-500">*</span>
+                        </label>
                         <textarea
                           id="biography"
                           name="biography"
-                          className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
+                          rows="4"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-festival-green focus:border-festival-green disabled:bg-gray-100 disabled:cursor-not-allowed resize-vertical"
                           placeholder="Tell us about yourself and your achievements"
                           disabled={isFormDisabled}
                           required
@@ -559,14 +605,14 @@ const LoginPage = () => {
                       </div>
 
                       <div>
-                        <Label
+                        <label
                           htmlFor="categoryId"
-                          className="text-sm font-medium"
+                          className="block text-sm font-medium text-gray-900 mb-1"
                         >
-                          Award Category{" "}
-                        </Label>
+                          Award Category <span className="text-red-500">*</span>
+                        </label>
                         {loadingCategories ? (
-                          <div className="border rounded p-3 flex items-center gap-2 mt-1">
+                          <div className="border border-gray-300 rounded-md p-3 flex items-center gap-2 text-gray-900">
                             <Loader2 className="w-4 h-4 animate-spin" />
                             Loading categories...
                           </div>
@@ -574,7 +620,7 @@ const LoginPage = () => {
                           <select
                             id="categoryId"
                             name="categoryId"
-                            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-festival-green focus:border-festival-green disabled:bg-gray-100 disabled:cursor-not-allowed"
                             disabled={isFormDisabled}
                             required
                           >
@@ -589,54 +635,60 @@ const LoginPage = () => {
                       </div>
 
                       <div>
-                        <Label
+                        <label
                           htmlFor="password"
-                          className="text-sm font-medium"
+                          className="block text-sm font-medium text-gray-900 mb-1"
                         >
-                          Password
-                        </Label>
-                        <Input
+                          Password <span className="text-red-500">*</span>
+                        </label>
+                        <input
                           id="password"
                           name="password"
                           type="password"
                           placeholder="Create a password"
                           disabled={isFormDisabled}
-                          className="mt-1"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-festival-green focus:border-festival-green disabled:bg-gray-100 disabled:cursor-not-allowed"
                           required
                         />
                       </div>
 
                       <div>
-                        <Label htmlFor="logo" className="text-sm font-medium">
+                        <label
+                          htmlFor="logo"
+                          className="block text-sm font-medium text-gray-900 mb-1"
+                        >
                           Company Logo
-                        </Label>
-                        <Input
+                        </label>
+                        <input
                           id="logo"
                           name="logo"
                           type="file"
                           accept="image/*"
                           disabled={isFormDisabled}
-                          className="mt-1 file:bg-transparent file:border-1  file:text-sm file:font-medium cursor-pointer"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-sm file:font-medium file:bg-festival-green file:text-white hover:file:bg-festival-green/90 disabled:bg-gray-100 disabled:cursor-not-allowed cursor-pointer"
                         />
-                        <p className="text-xs text-black mt-1">
-                          Upload your company logo
+                        <p className="text-xs text-gray-600 mt-1">
+                          Upload your company logo (optional)
                         </p>
                       </div>
 
                       <div>
-                        <Label htmlFor="photo" className="text-sm font-medium">
+                        <label
+                          htmlFor="photo"
+                          className="block text-sm font-medium text-gray-900 mb-1"
+                        >
                           Profile Picture
-                        </Label>
-                        <Input
+                        </label>
+                        <input
                           id="photo"
                           name="photo"
                           type="file"
                           accept="image/*"
                           disabled={isFormDisabled}
-                          className="mt-1 file:bg-transparent file:border-1 file:text-sm file:font-medium"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-gray-900 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-sm file:font-medium file:bg-festival-green file:text-white hover:file:bg-festival-green/90 disabled:bg-gray-100 disabled:cursor-not-allowed cursor-pointer"
                         />
-                        <p className="text-xs text-black mt-1">
-                          Upload your profile picture
+                        <p className="text-xs text-gray-600 mt-1">
+                          Upload your profile picture (optional)
                         </p>
                       </div>
                     </div>
@@ -660,20 +712,20 @@ const LoginPage = () => {
                   )}
 
                   {/* Form Actions */}
-                  <div className="flex justify-end gap-4 pt-4 border-t">
-                    <Button
+                  <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+                    <button
                       type="button"
-                      variant="outline"
                       disabled={isFormDisabled}
                       onClick={() => setShowLargeApplyForm(false)}
+                      className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-festival-green disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       Cancel
-                    </Button>
-                    <Button
+                    </button>
+                    <button
+                      style={{ color: "white", background: "black" }}
                       type="submit"
-                      variant="festival"
                       disabled={isFormDisabled}
-                      className="min-w-[160px]"
+                      className="min-w-[160px] px-4 py-2 text-white rounded-md hover:bg-festival-green/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-festival-green disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                     >
                       {isUploadingImages ? (
                         <>
@@ -691,15 +743,15 @@ const LoginPage = () => {
                           Submit Application
                         </>
                       )}
-                    </Button>
+                    </button>
                   </div>
 
-                  <p className="text-sm text-muted-foreground text-center">
+                  <p className="text-sm text-gray-600 text-center">
                     Applications are reviewed by admin before approval
                   </p>
                 </form>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -708,8 +760,8 @@ const LoginPage = () => {
       <section className="py-16">
         <div className="container mx-auto px-4 max-w-4xl">
           <Tabs defaultValue="nominee" className="w-full">
-            <TabsList className="w-full bg-white" >
-              <TabsTrigger value="nominee" >Nominee Login</TabsTrigger>
+            <TabsList className="w-full">
+              <TabsTrigger value="nominee">Nominee Login</TabsTrigger>
               {/* <TabsTrigger value="admin">Admin Login</TabsTrigger> */}
             </TabsList>
 

@@ -93,7 +93,7 @@ const HeroSection = () => {
         <div className="max-w-6xl mx-auto">
           {/* Premium Title with Advanced Typography */}
           <div className="fade-in-up mb-8">
-            <h1 className="font-heading text-5xl md:text-7xl lg:text-8xl font-bold text-primary-foreground mb-4 leading-tight">
+            <h1 className="font-heading text-5xl md:text-3xl lg:text-6xl font-bold text-primary-foreground mb-4 leading-tight">
               <span className="block text-gradient">Ibadan</span>
               <span className="block">Market Square</span>
               <span className="block text-gold-luxury animate-pulse-glow">
@@ -102,7 +102,7 @@ const HeroSection = () => {
             </h1>
 
             <div className="relative inline-block">
-              <span className="text-6xl md:text-8xl lg:text-9xl font-heading font-black text-gold-luxury animate-gold-shimmer">
+              <span className="text-2xl md:text-3xl lg:text-6xl font-heading font-black text-gold-luxury animate-gold-shimmer">
                 2025
               </span>
               <Sparkles className="absolute -top-4 -right-4 w-8 h-8 text-festival-gold animate-spin" />
@@ -113,7 +113,7 @@ const HeroSection = () => {
           {/* Premium Theme Badge */}
           <div className="fade-in-up mb-12" style={{ animationDelay: "0.2s" }}>
             <div className="glass-strong rounded-full px-8 py-4 inline-block border border-festival-gold/50">
-              <p className="text-2xl md:text-3xl font-heading font-semibold text-primary-foreground">
+              <p className="text-xl md:text-2xl font-heading font-semibold text-primary-foreground">
                 Theme:{" "}
                 <span className="text-gold-luxury">"Made in Ibadan"</span>
               </p>
@@ -142,6 +142,8 @@ const HeroSection = () => {
           >
             {ctaButtons.map((button, index) => {
               const IconComponent = button.icon;
+              console.log(button);
+
               return (
                 <div
                   key={button.href}
@@ -149,10 +151,14 @@ const HeroSection = () => {
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
                   <Button
-                    // variant={button.variant}
+                    variant={button.variant}
                     size="lg"
                     onClick={() => navigate(button.href)}
-                    className="w-full h-28 text-sm font-bold bg-black transform scale-105 transition-all duration-500 glass-strong border-2 border-transparent hover:border-festival-gold/50"
+                    className={`w-full h-28 text-sm font-bold ${
+                      button.label === "Register as a nominee"
+                        ? "bg-black"
+                        : "shadow-elegant"
+                    }  transform scale-105 transition-all duration-500 glass-strong border-2 border-transparent hover:border-festival-gold/50`}
                   >
                     <div className="flex flex-col items-center gap-2">
                       <IconComponent className="w-6 h-6 group-hover:animate-bounce" />
