@@ -91,7 +91,7 @@ const VotingPage = () => {
         // Set timeout to show network warning after 30 seconds (increased from 10 seconds)
         const timeoutId = setTimeout(() => {
           setLoadingTimeout(true);
-        }, 30000);
+        }, 120000);
 
         const response = await fetch(
           "https://api.ibadanmarketsquare.ng/api/v1/nominee?pageNumber=1&pageSize=1000",
@@ -270,7 +270,7 @@ const submitVoteToAPI = async ({ transactionId, txRef }) => {
         "Connection is taking longer than usual. Please wait or refresh and try again.",
       variant: "destructive",
     });
-  }, 20000);
+  }, 120000);
 
   try {
     const payload = {
@@ -285,7 +285,7 @@ const submitVoteToAPI = async ({ transactionId, txRef }) => {
 
 
     const response = await fetch(
-      "https://placid-002-site24.qtempurl.com/api/v1/castvote",
+      "https://api.ibadanmarketsquare.ng/api/v1/castvote",
       {
         method: "POST",
         headers: {

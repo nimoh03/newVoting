@@ -25,12 +25,12 @@ import { useState, useEffect } from "react";
 import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const ALLOWED_FILE_TYPES = ["image/png", "image/jpeg", "image/jpg"];
-// Network timeout constants
+// Network timeout constants - Extended to 2 minutes
 const NETWORK_TIMEOUTS = {
-  CATEGORY_FETCH: 30000, // 30s for categories
-  IMAGE_UPLOAD: 60000, // 60s for image uploads
-  REGISTRATION: 45000, // 45s for registration
-  PRICE_FETCH: 15000, // 15s for price
+  CATEGORY_FETCH: 120000, // 2 minutes for categories
+  IMAGE_UPLOAD: 120000, // 2 minutes for image uploads
+  REGISTRATION: 120000, // 2 minutes for registration
+  PRICE_FETCH: 120000, // 2 minutes for price
 };
 
 const MAX_RETRIES = 3;
@@ -629,7 +629,7 @@ const BusinessPitchRegister = () => {
             "Submission is taking longer than usual. Please refresh and try again.",
           variant: "destructive",
         });
-      }, 15000);
+      }, NETWORK_TIMEOUTS.REGISTRATION);
 
       const registrationData = {
         request: {

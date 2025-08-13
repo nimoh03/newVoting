@@ -111,7 +111,7 @@ const LoginPage = () => {
           "Connection is taking longer than usual. Please refresh and try again.",
         variant: "destructive",
       });
-    }, 10000); // 10 seconds
+    }, 120000);
 
     try {
       const response = await fetch(
@@ -174,7 +174,7 @@ const LoginPage = () => {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error("Upload timeout"));
-      }, 8000); // 8 second timeout
+      }, 120000);
 
       const formData = new FormData();
       formData.append("image", imageFile);
