@@ -128,35 +128,37 @@ const VotingPage = () => {
     fetchNominees();
   }, [toast]);
 
-useEffect(() => {
-  const fetchCategories = async () => {
-    try {
-      const response = await fetch(
-        "https://api.ibadanmarketsquare.ng/api/v1/businesscategory",
-        {
-          headers: {
-            "X-API-KEY": "H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH",
-          },
-        }
-      );
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch(
+          "https://api.ibadanmarketsquare.ng/api/v1/businesscategory",
+          {
+            headers: {
+              "X-API-KEY": "H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH",
+            },
+          }
+        );
 
-      const result = await response.json();
-      const categoryArray = Array.isArray(result?.data) ? result.data : [];
-      
-      // Filter categories where award equals true
-      const awardCategories = categoryArray.filter(cat => cat.award === true);
-      
-      // Extract category names from filtered categories
-      const categoryNames = awardCategories.map((cat) => cat.name);
-      
-      setCategories(["All", ...categoryNames]);
-    } catch (error) {
-      console.error("Failed to fetch categories:", error);
-    }
-  };
+        const result = await response.json();
+        const categoryArray = Array.isArray(result?.data) ? result.data : [];
 
-  fetchCategories();
-}, []);
+        // Filter categories where award equals true
+        const awardCategories = categoryArray.filter(
+          (cat) => cat.award === true
+        );
+
+        // Extract category names from filtered categories
+        const categoryNames = awardCategories.map((cat) => cat.name);
+
+        setCategories(["All", ...categoryNames]);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
 
   // Updated handleVote function to capture category
   const handleVote = (nominee) => {
@@ -170,8 +172,6 @@ useEffect(() => {
       voteCount: 1,
     });
     setShowVoteForm(true);
-    
- 
   };
 
   const handleInputChange = (e) => {
@@ -258,96 +258,95 @@ useEffect(() => {
     });
   };
 
-// Updated submitVoteToAPI function to include categoryName
-const submitVoteToAPI = async ({ transactionId, txRef }) => {
-  setIsSubmittingVote(true);
+  // Updated submitVoteToAPI function to include categoryName
+  const submitVoteToAPI = async ({ transactionId, txRef }) => {
+    setIsSubmittingVote(true);
 
-  // Increased timeout for vote submission to 20 seconds (from 10 seconds)
-  const timeoutId = setTimeout(() => {
-    toast({
-      title: "Network Slow",
-      description:
-        "Connection is taking longer than usual. Please wait or refresh and try again.",
-      variant: "destructive",
-    });
-  }, 120000);
-
-  try {
-    const payload = {
-      nomineeId: selectedNomineeId,
-      quantity: parseInt(voteFormData.voteCount),
-      voterEmail: voteFormData.voterEmail,
-      voterName: voteFormData.voterName,
-      referenceNumber: txRef, // Your own generated reference
-      flutterwaveTransactionId: transactionId, // Add this back - your API might need it
-      categoryName: selectedNomineeCategory // Added the category name here
-    };
-
-
-    const response = await fetch(
-      "https://api.ibadanmarketsquare.ng/api/v1/castvote",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-API-KEY": "H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH",
-        },
-        body: JSON.stringify(payload),
-      }
-    );
-
-    clearTimeout(timeoutId);
-
-    // Enhanced error logging
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('Vote submission failed:', {
-        status: response.status,
-        statusText: response.statusText,
-        errorData,
-        payload
+    // Increased timeout for vote submission to 20 seconds (from 10 seconds)
+    const timeoutId = setTimeout(() => {
+      toast({
+        title: "Network Slow",
+        description:
+          "Connection is taking longer than usual. Please wait or refresh and try again.",
+        variant: "destructive",
       });
-      
-      throw new Error(
-        errorData.message || 
-        errorData.error || 
-        `Failed to cast vote: ${response.status} ${response.statusText}`
+    }, 120000);
+
+    try {
+      const payload = {
+        nomineeId: selectedNomineeId,
+        quantity: parseInt(voteFormData.voteCount),
+        voterEmail: voteFormData.voterEmail,
+        voterName: voteFormData.voterName,
+        referenceNumber: txRef, // Your own generated reference
+        flutterwaveTransactionId: transactionId, // Add this back - your API might need it
+        categoryName: selectedNomineeCategory, // Added the category name here
+      };
+
+      const response = await fetch(
+        "https://api.ibadanmarketsquare.ng/api/v1/castvote",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-KEY": "H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH",
+          },
+          body: JSON.stringify(payload),
+        }
       );
+
+      clearTimeout(timeoutId);
+
+      // Enhanced error logging
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Vote submission failed:", {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+          payload,
+        });
+
+        throw new Error(
+          errorData.message ||
+            errorData.error ||
+            `Failed to cast vote: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const successData = await response.json();
+
+      toast({
+        title: "Vote Submitted Successfully!",
+        description: `Your ${voteFormData.voteCount} vote(s) for ${
+          selectedNominee?.fullName
+        } have been recorded. Total: ₦${voteFormData.voteCount * 50}`,
+      });
+
+      setShowVoteForm(false);
+      setSelectedNominee(null);
+      setSelectedNomineeId(null);
+      setSelectedNomineeCategory(null); // Reset category
+      setVoteFormData({
+        voterName: "",
+        voterEmail: "",
+        voterPhone: "",
+        voteCount: 1,
+      });
+    } catch (error) {
+      clearTimeout(timeoutId);
+      console.error("Vote submission error:", error); // Debug log
+
+      toast({
+        title: "Vote Submission Failed",
+        description:
+          error.message || "Failed to submit vote. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingVote(false);
     }
-
-    const successData = await response.json();
-   
-    toast({
-      title: "Vote Submitted Successfully!",
-      description: `Your ${voteFormData.voteCount} vote(s) for ${
-        selectedNominee?.fullName
-      } have been recorded. Total: ₦${voteFormData.voteCount * 50}`,
-    });
-
-    setShowVoteForm(false);
-    setSelectedNominee(null);
-    setSelectedNomineeId(null);
-    setSelectedNomineeCategory(null); // Reset category
-    setVoteFormData({
-      voterName: "",
-      voterEmail: "",
-      voterPhone: "",
-      voteCount: 1,
-    });
-  } catch (error) {
-    clearTimeout(timeoutId);
-    console.error('Vote submission error:', error); // Debug log
-    
-    toast({
-      title: "Vote Submission Failed",
-      description:
-        error.message || "Failed to submit vote. Please try again.",
-      variant: "destructive",
-    });
-  } finally {
-    setIsSubmittingVote(false);
-  }
-};
+  };
 
   const handleRefresh = () => {
     window.location.reload();
@@ -640,142 +639,145 @@ const submitVoteToAPI = async ({ transactionId, txRef }) => {
         {/* Voting Form Modal */}
         {showVoteForm && selectedNominee && (
           <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-md">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <CreditCard className="w-5 h-5" />
-                  Complete Your Vote
-                </CardTitle>
-                <CardDescription>
-                  Voting for {selectedNominee?.fullName}
-                  <br />
-                  <span className="text-xs text-muted-foreground">
-                    Category: {selectedNomineeCategory}
-                  </span>
-                  <br />
-                  <span className="text-xs text-muted-foreground">
-                    Payment will be processed securely via Flutterwave
-                  </span>
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleVoteSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="voterName">
-                      Your Name <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="voterName"
-                      name="voterName"
-                      value={voteFormData.voterName}
-                      onChange={handleInputChange}
-                      disabled={isSubmittingVote}
-                      required
-                      placeholder="Enter your full name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="voterEmail">
-                      Email Address <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="voterEmail"
-                      name="voterEmail"
-                      type="email"
-                      value={voteFormData.voterEmail}
-                      onChange={handleInputChange}
-                      disabled={isSubmittingVote}
-                      required
-                      placeholder="Enter your email"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="voterPhone">Phone Number</Label>
-                    <Input
-                      id="voterPhone"
-                      name="voterPhone"
-                      type="tel"
-                      value={voteFormData.voterPhone}
-                      onChange={handleInputChange}
-                      disabled={isSubmittingVote}
-                      placeholder="Enter your phone number (optional)"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="voteCount">
-                      Number of Votes <span className="text-red-500">*</span>
-                    </Label>
-                    <div className="flex items-center gap-2">
+            <div className="w-full h-full flex items-center justify-center sm:p-4">
+              <Card className="w-full h-auto max-h-[90vh] overflow-y-auto sm:max-w-md sm:rounded-lg rounded-none">
+                <CardHeader className="pb-2 sm:pb-4">
+                  <CardTitle className="flex items-center gap-2">
+                    <CreditCard className="w-5 h-5" />
+                    Complete Your Vote
+                  </CardTitle>
+                  <CardDescription>
+                    Voting for {selectedNominee?.fullName}
+                    <br />
+                    <span className="text-xs text-muted-foreground">
+                      Category: {selectedNomineeCategory}
+                    </span>
+                    <br />
+                    <span className="text-xs text-muted-foreground">
+                      Payment will be processed securely via Flutterwave
+                    </span>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent  className="pb-4 sm:pb-6">
+                  <form onSubmit={handleVoteSubmit} className="space-y-4">
+                    <div>
+                      <Label htmlFor="voterName">
+                        Your Name <span className="text-red-500">*</span>
+                      </Label>
                       <Input
-                        id="voteCount"
-                        name="voteCount"
-                        type="number"
-                        value={voteFormData.voteCount}
+                        id="voterName"
+                        name="voterName"
+                        value={voteFormData.voterName}
                         onChange={handleInputChange}
-                        min="1"
-                        // max="100"
-                        className="flex-1"
                         disabled={isSubmittingVote}
                         required
+                        placeholder="Enter your full name"
                       />
-                      <span className="text-sm text-muted-foreground">
-                        × ₦50
-                      </span>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Minimum: 1 vote
-                    </p>
-                  </div>
-                  <div className="bg-festival-light-green/20 border border-festival-green/30 p-4 rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-semibold">Total Amount:</span>
-                      <span className="text-2xl font-bold text-festival-green">
-                        ₦{(voteFormData.voteCount * 50).toLocaleString()}
-                      </span>
+                    <div>
+                      <Label htmlFor="voterEmail">
+                        Email Address <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="voterEmail"
+                        name="voterEmail"
+                        type="email"
+                        value={voteFormData.voterEmail}
+                        onChange={handleInputChange}
+                        disabled={isSubmittingVote}
+                        required
+                        placeholder="Enter your email"
+                      />
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      <div className="flex justify-between">
-                        <span>Votes:</span>
-                        <span>{voteFormData.voteCount}</span>
+                    <div>
+                      <Label htmlFor="voterPhone">Phone Number</Label>
+                      <Input
+                        id="voterPhone"
+                        name="voterPhone"
+                        type="tel"
+                        value={voteFormData.voterPhone}
+                        onChange={handleInputChange}
+                        disabled={isSubmittingVote}
+                        placeholder="Enter your phone number (optional)"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="voteCount">
+                        Number of Votes <span className="text-red-500">*</span>
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="voteCount"
+                          name="voteCount"
+                          type="number"
+                          value={voteFormData.voteCount}
+                          onChange={handleInputChange}
+                          min="1"
+                          // max="100"
+                          className="flex-1"
+                          disabled={isSubmittingVote}
+                          required
+                        />
+                        <span className="text-sm text-muted-foreground">
+                          × ₦50
+                        </span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Rate per vote:</span>
-                        <span>₦50</span>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Minimum: 1 vote
+                      </p>
+                    </div>
+                    <div className="bg-festival-light-green/20 border border-festival-green/30 p-4 rounded-lg">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-semibold">Total Amount:</span>
+                        <span className="text-2xl font-bold text-festival-green">
+                          ₦{(voteFormData.voteCount * 50).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        <div className="flex justify-between">
+                          <span>Votes:</span>
+                          <span>{voteFormData.voteCount}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Rate per vote:</span>
+                          <span>₦50</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowVoteForm(false)}
-                      className="flex-1"
-                      disabled={isSubmittingVote}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      variant="festival"
-                      className="flex-1"
-                      disabled={isSubmittingVote}
-                    >
-                      {isSubmittingVote ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard className="w-4 h-4 mr-2" />
-                          Pay ₦{(voteFormData.voteCount * 50).toLocaleString()}
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+                    <div className="flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setShowVoteForm(false)}
+                        className="flex-1"
+                        disabled={isSubmittingVote}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        variant="festival"
+                        className="flex-1"
+                        disabled={isSubmittingVote}
+                      >
+                        {isSubmittingVote ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <CreditCard className="w-4 h-4 mr-2" />
+                            Pay ₦
+                            {(voteFormData.voteCount * 50).toLocaleString()}
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
           </div>
         )}
       </section>
