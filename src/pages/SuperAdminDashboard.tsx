@@ -1,31 +1,50 @@
 import Navbar from "@/components/Navbar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  Users, 
-  DollarSign, 
-  Trophy, 
-  Building, 
-  Calendar, 
-  Settings, 
-  UserCheck, 
-  UserX, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Users,
+  DollarSign,
+  Trophy,
+  Building,
+  Calendar,
+  Settings,
+  UserCheck,
+  UserX,
   Eye,
   Edit,
   Trash2,
   Download,
   Plus,
-  Search
+  Search,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useState } from "react";
 
 const SuperAdminDashboard = () => {
   const { toast } = useToast();
+  const [categoryName, setCategoryName] = useState("");
+  const [pitchCategoryName, setPitchCategoryName] = useState("");
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+  const [isCreatingPitchCategory, setIsCreatingPitchCategory] = useState(false);
+
+  const API_KEY = "H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH";
 
   // Mock data for admin dashboard
   const dashboardStats = {
@@ -38,24 +57,107 @@ const SuperAdminDashboard = () => {
     businessPitchRegistrations: 89,
     vendorStandBookings: 34,
     freePassRegistrations: 2157,
-    dinnerTicketSales: 167
+    dinnerTicketSales: 167,
   };
 
   const nominees = [
-    { id: 1, name: "Adebayo Ogundimu", business: "TechNova Solutions", category: "Technology", votes: 1247, status: "verified", email: "adebayo@technova.com" },
-    { id: 2, name: "Fatima Abdullahi", business: "GreenHarvest Farms", category: "Agriculture", votes: 892, status: "verified", email: "fatima@greenharvest.com" },
-    { id: 3, name: "Kemi Adeola", business: "Afrocentric Fashion", category: "Fashion", votes: 1156, status: "verified", email: "kemi@afrocentric.com" },
-    { id: 4, name: "Ibrahim Lawal", business: "EduStream Academy", category: "Education", votes: 743, status: "pending", email: "ibrahim@edustream.com" },
-    { id: 5, name: "Chiamaka Okonkwo", business: "HealthTech Diagnostics", category: "Healthcare", votes: 934, status: "verified", email: "chiamaka@healthtech.com" },
-    { id: 6, name: "Yusuf Mohammed", business: "Solar Energy Solutions", category: "Energy", votes: 1089, status: "pending", email: "yusuf@solarenergy.com" },
+    {
+      id: 1,
+      name: "Adebayo Ogundimu",
+      business: "TechNova Solutions",
+      category: "Technology",
+      votes: 1247,
+      status: "verified",
+      email: "adebayo@technova.com",
+    },
+    {
+      id: 2,
+      name: "Fatima Abdullahi",
+      business: "GreenHarvest Farms",
+      category: "Agriculture",
+      votes: 892,
+      status: "verified",
+      email: "fatima@greenharvest.com",
+    },
+    {
+      id: 3,
+      name: "Kemi Adeola",
+      business: "Afrocentric Fashion",
+      category: "Fashion",
+      votes: 1156,
+      status: "verified",
+      email: "kemi@afrocentric.com",
+    },
+    {
+      id: 4,
+      name: "Ibrahim Lawal",
+      business: "EduStream Academy",
+      category: "Education",
+      votes: 743,
+      status: "pending",
+      email: "ibrahim@edustream.com",
+    },
+    {
+      id: 5,
+      name: "Chiamaka Okonkwo",
+      business: "HealthTech Diagnostics",
+      category: "Healthcare",
+      votes: 934,
+      status: "verified",
+      email: "chiamaka@healthtech.com",
+    },
+    {
+      id: 6,
+      name: "Yusuf Mohammed",
+      business: "Solar Energy Solutions",
+      category: "Energy",
+      votes: 1089,
+      status: "pending",
+      email: "yusuf@solarenergy.com",
+    },
   ];
 
   const recentVotes = [
-    { id: 1, voterName: "Kemi Adeyemi", nomineeName: "Adebayo Ogundimu", votes: 5, amount: 250, date: "2025-01-20 14:30" },
-    { id: 2, voterName: "Tunde Bakare", nomineeName: "Fatima Abdullahi", votes: 2, amount: 100, date: "2025-01-20 12:15" },
-    { id: 3, voterName: "Funmi Olarewaju", nomineeName: "Kemi Adeola", votes: 10, amount: 500, date: "2025-01-20 09:45" },
-    { id: 4, voterName: "Samuel Adebisi", nomineeName: "Ibrahim Lawal", votes: 1, amount: 50, date: "2025-01-19 16:20" },
-    { id: 5, voterName: "Aisha Mohammed", nomineeName: "Chiamaka Okonkwo", votes: 3, amount: 150, date: "2025-01-19 11:30" },
+    {
+      id: 1,
+      voterName: "Kemi Adeyemi",
+      nomineeName: "Adebayo Ogundimu",
+      votes: 5,
+      amount: 250,
+      date: "2025-01-20 14:30",
+    },
+    {
+      id: 2,
+      voterName: "Tunde Bakare",
+      nomineeName: "Fatima Abdullahi",
+      votes: 2,
+      amount: 100,
+      date: "2025-01-20 12:15",
+    },
+    {
+      id: 3,
+      voterName: "Funmi Olarewaju",
+      nomineeName: "Kemi Adeola",
+      votes: 10,
+      amount: 500,
+      date: "2025-01-20 09:45",
+    },
+    {
+      id: 4,
+      voterName: "Samuel Adebisi",
+      nomineeName: "Ibrahim Lawal",
+      votes: 1,
+      amount: 50,
+      date: "2025-01-19 16:20",
+    },
+    {
+      id: 5,
+      voterName: "Aisha Mohammed",
+      nomineeName: "Chiamaka Okonkwo",
+      votes: 3,
+      amount: 150,
+      date: "2025-01-19 11:30",
+    },
   ];
 
   const handleNomineeAction = (action: string, nomineeName: string) => {
@@ -65,22 +167,167 @@ const SuperAdminDashboard = () => {
     });
   };
 
+  const createBusinessCategory = async () => {
+    if (!categoryName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a category name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCreatingCategory(true);
+    try {
+      // Debug: Log the API key and headers
+
+      const response = await fetch(
+        "https://api.ibadanmarketsquare.ng/api/v1/businesscategory",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_KEY}`,
+            "X-API-Key": API_KEY, // Some APIs use this format
+            "API-Key": API_KEY, // Or this format
+          },
+          body: JSON.stringify({
+            name: categoryName,
+            isAward: true,
+            ispitch: false,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Business category created successfully",
+        });
+        setCategoryName("");
+      } else {
+        let errorMessage = "Failed to create category";
+        try {
+          // Check if response is JSON
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorMessage;
+          } else {
+            // If it's plain text, read as text
+            errorMessage = await response.text();
+          }
+        } catch (parseError) {
+          // If parsing fails, use default message with status
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create business category",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingCategory(false);
+    }
+  };
+
+  const createPitchCategory = async () => {
+    if (!pitchCategoryName.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter a pitch category name",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCreatingPitchCategory(true);
+    try {
+      // Debug: Log the API key and headers
+      console.log("API Key:", API_KEY);
+      console.log("Headers being sent:", {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${API_KEY}`,
+        "X-API-Key": API_KEY,
+      });
+
+      const response = await fetch(
+        "https://api.ibadanmarketsquare.ng/api/v1/businesscategory/registerpitch",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_KEY}`,
+            "X-API-Key": API_KEY, // Some APIs use this format
+            "API-Key": API_KEY, // Or this format
+          },
+          body: JSON.stringify({ name: pitchCategoryName }),
+        }
+      );
+
+      if (response.ok) {
+        toast({
+          title: "Success",
+          description: "Business pitch category created successfully",
+        });
+        setPitchCategoryName("");
+      } else {
+        let errorMessage = "Failed to create pitch category";
+        try {
+          // Check if response is JSON
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorMessage;
+          } else {
+            // If it's plain text, read as text
+            errorMessage = await response.text();
+          }
+        } catch (parseError) {
+          // If parsing fails, use default message with status
+          errorMessage = `HTTP ${response.status}: ${
+            response.status === 401
+              ? "Unauthorized - Check API key"
+              : response.statusText
+          }`;
+        }
+        throw new Error(errorMessage);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error.message || "Failed to create business pitch category",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingPitchCategory(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      
+
       {/* Header */}
       <section className="py-12 bg-gradient-primary text-primary-foreground">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2">Super Admin Dashboard</h1>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2">
+                Super Admin Dashboard
+              </h1>
               <p className="text-xl text-primary-foreground/90">
                 Oyo State Youth and Business Festival 2025
               </p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold">₦{dashboardStats.totalRevenue.toLocaleString()}</div>
+              <div className="text-2xl font-bold">
+                ₦{dashboardStats.totalRevenue.toLocaleString()}
+              </div>
               <div className="text-primary-foreground/80">Total Revenue</div>
             </div>
           </div>
@@ -94,39 +341,53 @@ const SuperAdminDashboard = () => {
             <Card className="text-center">
               <CardContent className="p-4">
                 <Users className="w-8 h-8 mx-auto mb-2 text-festival-green" />
-                <div className="text-2xl font-bold">{dashboardStats.totalNominees}</div>
-                <div className="text-xs text-muted-foreground">Total Nominees</div>
+                <div className="text-2xl font-bold">
+                  {dashboardStats.totalNominees}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Total Nominees
+                </div>
               </CardContent>
             </Card>
-            
+
             <Card className="text-center">
               <CardContent className="p-4">
                 <Trophy className="w-8 h-8 mx-auto mb-2 text-festival-gold" />
-                <div className="text-2xl font-bold">{dashboardStats.totalVotes.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  {dashboardStats.totalVotes.toLocaleString()}
+                </div>
                 <div className="text-xs text-muted-foreground">Total Votes</div>
               </CardContent>
             </Card>
-            
+
             <Card className="text-center">
               <CardContent className="p-4">
                 <DollarSign className="w-8 h-8 mx-auto mb-2 text-festival-emerald" />
-                <div className="text-2xl font-bold">₦{dashboardStats.totalRevenue.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  ₦{dashboardStats.totalRevenue.toLocaleString()}
+                </div>
                 <div className="text-xs text-muted-foreground">Revenue</div>
               </CardContent>
             </Card>
-            
+
             <Card className="text-center">
               <CardContent className="p-4">
                 <Building className="w-8 h-8 mx-auto mb-2 text-festival-green" />
-                <div className="text-2xl font-bold">{dashboardStats.businessPitchRegistrations}</div>
-                <div className="text-xs text-muted-foreground">Pitch Registrations</div>
+                <div className="text-2xl font-bold">
+                  {dashboardStats.businessPitchRegistrations}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Pitch Registrations
+                </div>
               </CardContent>
             </Card>
-            
+
             <Card className="text-center">
               <CardContent className="p-4">
                 <Calendar className="w-8 h-8 mx-auto mb-2 text-festival-gold" />
-                <div className="text-2xl font-bold">{dashboardStats.freePassRegistrations.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  {dashboardStats.freePassRegistrations.toLocaleString()}
+                </div>
                 <div className="text-xs text-muted-foreground">Free Passes</div>
               </CardContent>
             </Card>
@@ -138,9 +399,10 @@ const SuperAdminDashboard = () => {
       <section className="py-8">
         <div className="container mx-auto px-4">
           <Tabs defaultValue="nominees" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 max-w-2xl mx-auto mb-8">
+            <TabsList className="grid w-full grid-cols-6 max-w-3xl mx-auto mb-8">
               <TabsTrigger value="nominees">Nominees</TabsTrigger>
               <TabsTrigger value="votes">Votes</TabsTrigger>
+              <TabsTrigger value="categories">Categories</TabsTrigger>
               <TabsTrigger value="registrations">Registrations</TabsTrigger>
               <TabsTrigger value="analytics">Analytics</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -155,7 +417,9 @@ const SuperAdminDashboard = () => {
                         <Users className="w-5 h-5 text-festival-green" />
                         Nominee Management
                       </CardTitle>
-                      <CardDescription>Manage nominee registrations and verification</CardDescription>
+                      <CardDescription>
+                        Manage nominee registrations and verification
+                      </CardDescription>
                     </div>
                     <div className="flex gap-2">
                       <Button variant="festival-outline" size="sm">
@@ -173,7 +437,10 @@ const SuperAdminDashboard = () => {
                   <div className="flex items-center gap-4 mb-6">
                     <div className="flex-1 relative">
                       <Search className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
-                      <Input placeholder="Search nominees..." className="pl-10" />
+                      <Input
+                        placeholder="Search nominees..."
+                        className="pl-10"
+                      />
                     </div>
                     <Select>
                       <SelectTrigger className="w-40">
@@ -201,31 +468,51 @@ const SuperAdminDashboard = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="space-y-4">
                     {nominees.map((nominee) => (
-                      <div key={nominee.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-festival-light-green/20 transition-colors">
+                      <div
+                        key={nominee.id}
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-festival-light-green/20 transition-colors"
+                      >
                         <div className="flex items-center gap-4 flex-1">
                           <Avatar className="w-12 h-12">
                             <AvatarFallback className="bg-festival-green text-primary-foreground">
-                              {nominee.name.split(' ').map(n => n[0]).join('')}
+                              {nominee.name
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="font-semibold">{nominee.name}</span>
-                              <Badge variant={nominee.status === 'verified' ? 'default' : 'secondary'}>
+                              <span className="font-semibold">
+                                {nominee.name}
+                              </span>
+                              <Badge
+                                variant={
+                                  nominee.status === "verified"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                              >
                                 {nominee.status}
                               </Badge>
                             </div>
                             <div className="text-sm text-muted-foreground">
                               {nominee.business} • {nominee.category}
                             </div>
-                            <div className="text-xs text-muted-foreground">{nominee.email}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {nominee.email}
+                            </div>
                           </div>
                           <div className="text-right">
-                            <div className="font-bold text-festival-green">{nominee.votes} votes</div>
-                            <div className="text-sm text-muted-foreground">₦{nominee.votes * 50}</div>
+                            <div className="font-bold text-festival-green">
+                              {nominee.votes} votes
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              ₦{nominee.votes * 50}
+                            </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 ml-4">
@@ -235,19 +522,23 @@ const SuperAdminDashboard = () => {
                           <Button variant="ghost" size="sm">
                             <Edit className="w-4 h-4" />
                           </Button>
-                          {nominee.status === 'pending' && (
-                            <Button 
-                              variant="ghost" 
+                          {nominee.status === "pending" && (
+                            <Button
+                              variant="ghost"
                               size="sm"
-                              onClick={() => handleNomineeAction('Verified', nominee.name)}
+                              onClick={() =>
+                                handleNomineeAction("Verified", nominee.name)
+                              }
                             >
                               <UserCheck className="w-4 h-4 text-festival-green" />
                             </Button>
                           )}
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
-                            onClick={() => handleNomineeAction('Rejected', nominee.name)}
+                            onClick={() =>
+                              handleNomineeAction("Rejected", nominee.name)
+                            }
                           >
                             <UserX className="w-4 h-4 text-destructive" />
                           </Button>
@@ -266,28 +557,179 @@ const SuperAdminDashboard = () => {
                     <Trophy className="w-5 h-5 text-festival-green" />
                     Vote Monitoring
                   </CardTitle>
-                  <CardDescription>Real-time vote tracking and analytics</CardDescription>
+                  <CardDescription>
+                    Real-time vote tracking and analytics
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     {recentVotes.map((vote) => (
-                      <div key={vote.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div
+                        key={vote.id}
+                        className="flex items-center justify-between p-4 border rounded-lg"
+                      >
                         <div>
                           <div className="font-semibold">{vote.voterName}</div>
                           <div className="text-sm text-muted-foreground">
                             Voted for {vote.nomineeName}
                           </div>
-                          <div className="text-xs text-muted-foreground">{vote.date}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {vote.date}
+                          </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-bold text-festival-green">{vote.votes} votes</div>
-                          <div className="text-sm text-muted-foreground">₦{vote.amount}</div>
+                          <div className="font-bold text-festival-green">
+                            {vote.votes} votes
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            ₦{vote.amount}
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="categories">
+              <div className="grid md:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building className="w-5 h-5 text-festival-green" />
+                      Create Award Category
+                    </CardTitle>
+                    <CardDescription>
+                      Add new categories for business nominations
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label
+                        htmlFor="category-name"
+                        className="block text-sm font-medium mb-2"
+                      >
+                        Category Name
+                      </label>
+                      <Input
+                        id="category-name"
+                        placeholder="Enter category name (e.g., Technology, Agriculture)"
+                        value={categoryName}
+                        onChange={(e) => setCategoryName(e.target.value)}
+                        disabled={isCreatingCategory}
+                      />
+                    </div>
+                    <Button
+                      onClick={createBusinessCategory}
+                      disabled={isCreatingCategory || !categoryName.trim()}
+                      className="w-full"
+                      variant="festival"
+                    >
+                      {isCreatingCategory ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                          Creating...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create Business Category
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Trophy className="w-5 h-5 text-festival-gold" />
+                      Create Pitch Category
+                    </CardTitle>
+                    <CardDescription>
+                      Add new categories for business pitch contest
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label
+                        htmlFor="pitch-category-name"
+                        className="block text-sm font-medium mb-2"
+                      >
+                        Pitch Category Name
+                      </label>
+                      <Input
+                        id="pitch-category-name"
+                        placeholder="Enter pitch category name (e.g., Innovation, Sustainability)"
+                        value={pitchCategoryName}
+                        onChange={(e) => setPitchCategoryName(e.target.value)}
+                        disabled={isCreatingPitchCategory}
+                      />
+                    </div>
+                    <Button
+                      onClick={createPitchCategory}
+                      disabled={
+                        isCreatingPitchCategory || !pitchCategoryName.trim()
+                      }
+                      className="w-full"
+                      variant="festival"
+                    >
+                      {isCreatingPitchCategory ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                          Creating...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Create Pitch Category
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="mt-8">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Category Management Tips</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid md:grid-cols-2 gap-6 text-sm text-muted-foreground">
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-2">
+                          Business Categories
+                        </h4>
+                        <ul className="space-y-1">
+                          <li>• Used for general business nominations</li>
+                          <li>
+                            • Categories help organize and filter nominees
+                          </li>
+                          <li>• Choose broad, inclusive category names</li>
+                          <li>
+                            • Consider industry standards and local relevance
+                          </li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-2">
+                          Pitch Categories
+                        </h4>
+                        <ul className="space-y-1">
+                          <li>• Specific to the business pitch contest</li>
+                          <li>• Categories define competition segments</li>
+                          <li>
+                            • Focus on innovation themes or business stages
+                          </li>
+                          <li>• Ensure categories are distinct and clear</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </TabsContent>
 
             <TabsContent value="registrations">
@@ -299,19 +741,27 @@ const SuperAdminDashboard = () => {
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span>Business Pitch Contest</span>
-                      <span className="font-semibold">{dashboardStats.businessPitchRegistrations}</span>
+                      <span className="font-semibold">
+                        {dashboardStats.businessPitchRegistrations}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span>Vendor Stand Bookings</span>
-                      <span className="font-semibold">{dashboardStats.vendorStandBookings}</span>
+                      <span className="font-semibold">
+                        {dashboardStats.vendorStandBookings}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span>Free Pass Registrations</span>
-                      <span className="font-semibold">{dashboardStats.freePassRegistrations}</span>
+                      <span className="font-semibold">
+                        {dashboardStats.freePassRegistrations}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span>Dinner Ticket Sales</span>
-                      <span className="font-semibold">{dashboardStats.dinnerTicketSales}</span>
+                      <span className="font-semibold">
+                        {dashboardStats.dinnerTicketSales}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -323,19 +773,36 @@ const SuperAdminDashboard = () => {
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-center">
                       <span>Voting Revenue</span>
-                      <span className="font-semibold">₦{dashboardStats.totalRevenue.toLocaleString()}</span>
+                      <span className="font-semibold">
+                        ₦{dashboardStats.totalRevenue.toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span>Business Pitch Fees</span>
-                      <span className="font-semibold">₦{(dashboardStats.businessPitchRegistrations * 15000).toLocaleString()}</span>
+                      <span className="font-semibold">
+                        ₦
+                        {(
+                          dashboardStats.businessPitchRegistrations * 15000
+                        ).toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span>Vendor Stand Revenue</span>
-                      <span className="font-semibold">₦{(dashboardStats.vendorStandBookings * 200000).toLocaleString()}</span>
+                      <span className="font-semibold">
+                        ₦
+                        {(
+                          dashboardStats.vendorStandBookings * 200000
+                        ).toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span>Dinner Ticket Sales</span>
-                      <span className="font-semibold">₦{(dashboardStats.dinnerTicketSales * 50000).toLocaleString()}</span>
+                      <span className="font-semibold">
+                        ₦
+                        {(
+                          dashboardStats.dinnerTicketSales * 50000
+                        ).toLocaleString()}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -351,13 +818,26 @@ const SuperAdminDashboard = () => {
                   <CardContent>
                     <div className="space-y-3">
                       {nominees.slice(0, 3).map((nominee, index) => (
-                        <div key={nominee.id} className="flex items-center gap-3">
-                          <Badge className={index === 0 ? 'bg-festival-gold' : 'bg-festival-green'}>
+                        <div
+                          key={nominee.id}
+                          className="flex items-center gap-3"
+                        >
+                          <Badge
+                            className={
+                              index === 0
+                                ? "bg-festival-gold"
+                                : "bg-festival-green"
+                            }
+                          >
                             #{index + 1}
                           </Badge>
                           <div className="flex-1">
-                            <div className="font-semibold text-sm">{nominee.name}</div>
-                            <div className="text-xs text-muted-foreground">{nominee.votes} votes</div>
+                            <div className="font-semibold text-sm">
+                              {nominee.name}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {nominee.votes} votes
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -422,7 +902,9 @@ const SuperAdminDashboard = () => {
                     <Settings className="w-5 h-5 text-festival-green" />
                     System Settings
                   </CardTitle>
-                  <CardDescription>Configure system-wide settings</CardDescription>
+                  <CardDescription>
+                    Configure system-wide settings
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
@@ -439,17 +921,23 @@ const SuperAdminDashboard = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div>
                       <h4 className="font-semibold mb-3">Event Settings</h4>
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <span>Voting End Date</span>
-                          <Input type="date" className="w-48" value="2025-09-13" />
+                          <Input
+                            type="date"
+                            className="w-48"
+                            value="2025-09-13"
+                          />
                         </div>
                         <div className="flex items-center justify-between">
                           <span>Auto-approve Nominees</span>
-                          <Button variant="outline" size="sm">Toggle</Button>
+                          <Button variant="outline" size="sm">
+                            Toggle
+                          </Button>
                         </div>
                       </div>
                     </div>

@@ -23,6 +23,7 @@ import { Upload, Trophy, Users, Star, DollarSign, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
+
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const ALLOWED_FILE_TYPES = ["image/png", "image/jpeg", "image/jpg"];
 // Network timeout constants - Extended to 2 minutes
@@ -34,6 +35,8 @@ const NETWORK_TIMEOUTS = {
 };
 
 const MAX_RETRIES = 3;
+const DEFAULT_PRICE = 0 ; // Default fallback price
+
 interface Category {
   id: string;
   name: string;
@@ -54,7 +57,8 @@ const BusinessPitchRegister = () => {
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [isSubmittingApplication, setIsSubmittingApplication] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
-  const [registrationPrice, setRegistrationPrice] = useState<number>(15000); // Default fallback
+  const [registrationPrice, setRegistrationPrice] = useState<number>(DEFAULT_PRICE);
+  const [priceLoading, setPriceLoading] = useState(true);
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
@@ -156,38 +160,72 @@ const BusinessPitchRegister = () => {
     }
   };
 
-  // Fetch registration price
- const fetchRegistrationPrice = async (retryCount = 0) => {
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), NETWORK_TIMEOUTS.PRICE_FETCH);
-    
-    const response = await fetch(PRICE_API_URL, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": API_KEY,
-      },
-      signal: controller.signal,
-    });
-    
-    clearTimeout(timeoutId);
-    // ... rest of success logic
-  } catch (error) {
-    if (retryCount < MAX_RETRIES && navigator.onLine) {
-      console.log(`Retrying price fetch, attempt ${retryCount + 1}`);
-      setTimeout(() => fetchRegistrationPrice(retryCount + 1), 1000 * (retryCount + 1));
-      return;
+  // Fetch registration price with proper error handling and retries
+  const fetchRegistrationPrice = async (retryCount = 0) => {
+    try {
+      setPriceLoading(true);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), NETWORK_TIMEOUTS.PRICE_FETCH);
+      
+      const response = await fetch(PRICE_API_URL, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": API_KEY,
+        },
+        signal: controller.signal,
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`Price fetch failed with status ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Extract price from various possible response structures
+      let fetchedPrice = data.price || data.amount || data.data?.price || data.data?.amount;
+      
+      // Convert to number if it's a string
+      if (typeof fetchedPrice === 'string') {
+        fetchedPrice = parseFloat(fetchedPrice);
+      }
+      
+      // Validate the fetched price
+      if (typeof fetchedPrice === 'number' && fetchedPrice > 0) {
+        setRegistrationPrice(fetchedPrice);
+        toast({
+          title: "Registration Fee Updated",
+          description: `Entry fee: ₦${fetchedPrice.toLocaleString()}`,
+          variant: "default",
+        });
+      } else {
+        throw new Error("Invalid price format received from server");
+      }
+
+    } catch (error) {
+      if (retryCount < MAX_RETRIES && navigator.onLine) {
+        console.log(`Retrying price fetch, attempt ${retryCount + 1}`);
+        setTimeout(() => fetchRegistrationPrice(retryCount + 1), 1000 * (retryCount + 1));
+        return;
+      }
+      
+      console.error("Error fetching price:", error);
+      
+      // Keep the default price and show appropriate message
+      const isNetworkError = error.name === 'AbortError' || !navigator.onLine;
+      
+      toast({
+        title: isNetworkError ? "Network Error" : "Price Loading Failed",
+        description: `Using default registration fee of ₦${registrationPrice.toLocaleString()}. ${isNetworkError ? 'Please check your connection.' : 'Contact support if this persists.'}`,
+        variant: "default",
+      });
+    } finally {
+      setPriceLoading(false);
     }
-    
-    console.error("Error fetching price:", error);
-    toast({
-      title: "Price Loading Failed",
-      description: `Using default registration fee of ₦${registrationPrice.toLocaleString()}`,
-      variant: "default",
-    });
-  }
-};
+  };
 
   // Load categories and price on component mount
   useEffect(() => {
@@ -519,10 +557,10 @@ const BusinessPitchRegister = () => {
         });
       }
 
-      // Step 2: After images are uploaded, prepare payment
+      // Step 2: After images are uploaded, prepare payment with the dynamic price
       toast({
         title: "Preparing Payment",
-        description: "Setting up your payment details...",
+        description: `Setting up payment for ₦${registrationPrice.toLocaleString()}...`,
       });
 
       const txRef = generateReferenceNumber();
@@ -531,7 +569,7 @@ const BusinessPitchRegister = () => {
       const paymentConfig = {
         public_key: flutterwaveKey,
         tx_ref: txRef,
-        amount: registrationPrice,
+        amount: registrationPrice, // Use the dynamic price
         currency: "NGN",
         payment_options: "card,mobilemoney,ussd",
         customer: {
@@ -541,7 +579,7 @@ const BusinessPitchRegister = () => {
         },
         customizations: {
           title: "Business Pitch Registration",
-          description: `Registration fee for ${formData.businessName.trim()}`,
+          description: `Registration fee for ${formData.businessName.trim()} - ₦${registrationPrice.toLocaleString()}`,
           logo: "https://st2.depositphotos.com/4403291/7418/v/450/depositphotos_74189661-stock-illustration-online-shop-log.jpg",
         },
       };
@@ -561,7 +599,7 @@ const BusinessPitchRegister = () => {
               await submitRegistrationData({
                 transactionId: response.transaction_id,
                 txRef: response.tx_ref,
-                amount: registrationPrice,
+                amount: registrationPrice, // Use the dynamic price
                 businessLogoUrl,
                 personalPhotoUrl,
               });
@@ -723,14 +761,13 @@ const BusinessPitchRegister = () => {
   };
 
   const isFormDisabled =
-    isUploadingImages || isSubmittingApplication || isLoading;
+    isUploadingImages || isSubmittingApplication || isLoading || priceLoading;
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
 
       {/* Hero Section */}
-
       <BusinessPitchHero />
 
       {/* Registration Form */}
@@ -747,12 +784,15 @@ const BusinessPitchRegister = () => {
                     Register for Business Pitch Contest
                     {(isUploadingImages ||
                       isSubmittingApplication ||
-                      isLoading) && (
+                      isLoading ||
+                      priceLoading) && (
                       <Loader2 className="w-5 h-5 animate-spin" />
                     )}
                   </CardTitle>
                   <CardDescription>
-                    {isUploadingImages
+                    {priceLoading
+                      ? "Loading registration details..."
+                      : isUploadingImages
                       ? "Uploading images, please wait..."
                       : isSubmittingApplication
                       ? "Finalizing your registration..."
@@ -897,11 +937,11 @@ const BusinessPitchRegister = () => {
                         <div className="mt-2">
                           <input
                             type="file"
-                            id="businessLogo" // or "personalPhoto"
+                            id="businessLogo"
                             accept={ALLOWED_FILE_TYPES.join(",")}
                             onChange={(e) => {
                               const file = e.target.files?.[0] || null;
-                              handleFileChange("businessLogo", file); // or "personalPhoto"
+                              handleFileChange("businessLogo", file);
                             }}
                             disabled={isFormDisabled}
                             className="hidden"
@@ -946,11 +986,11 @@ const BusinessPitchRegister = () => {
                         <div className="mt-2">
                           <input
                             type="file"
-                            id="personalPhoto" // or "personalPhoto"
+                            id="personalPhoto"
                             accept={ALLOWED_FILE_TYPES.join(",")}
                             onChange={(e) => {
                               const file = e.target.files?.[0] || null;
-                              handleFileChange("personalPhoto", file); // or "personalPhoto"
+                              handleFileChange("personalPhoto", file);
                             }}
                             disabled={isFormDisabled}
                             className="hidden"
@@ -964,11 +1004,24 @@ const BusinessPitchRegister = () => {
                             }`}
                           >
                             <Upload className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
-                            <p className="text-sm text-muted-foreground">
-                              {formData.personalPhoto
-                                ? formData.personalPhoto.name
-                                : "Click to upload or drag and drop"}
-                            </p>
+                            {formData.personalPhoto ? (
+                              <div className="space-y-2">
+                                <p className="text-sm font-medium text-green-700">
+                                  ✓ {formData.personalPhoto.name}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {(
+                                    formData.personalPhoto.size /
+                                    (1024 * 1024)
+                                  ).toFixed(1)}
+                                  MB
+                                </p>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                Click to upload or drag and drop
+                              </p>
+                            )}
                             <p className="text-xs text-muted-foreground">
                               PNG, JPG up to 2MB
                             </p>
@@ -976,6 +1029,21 @@ const BusinessPitchRegister = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Price Loading Indicator */}
+                    {priceLoading && (
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 flex items-center justify-center gap-3">
+                        <Loader2 className="w-6 h-6 animate-spin text-yellow-600" />
+                        <div className="text-center">
+                          <p className="text-yellow-800 font-medium">
+                            Loading registration price...
+                          </p>
+                          <p className="text-yellow-600 text-sm mt-1">
+                            Please wait while we fetch the current entry fee
+                          </p>
+                        </div>
+                      </div>
+                    )}
 
                     {(isUploadingImages ||
                       isSubmittingApplication ||
@@ -1000,10 +1068,45 @@ const BusinessPitchRegister = () => {
                     <div className="border-t pt-6">
                       <div className="flex items-center justify-between mb-4">
                         <span className="text-lg font-semibold">Entry Fee</span>
-                        <span className="text-2xl font-bold text-festival-green">
-                          ₦{registrationPrice.toLocaleString()}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          {priceLoading ? (
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+                              <span className="text-lg text-gray-500">Loading...</span>
+                            </div>
+                          ) : (
+                            <span className="text-2xl font-bold text-festival-green">
+                              ₦{registrationPrice.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      
+                      {/* Retry price fetch button if loading failed */}
+                      {!priceLoading && registrationPrice === DEFAULT_PRICE && (
+                        <div className="mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm text-gray-700">
+                                Using default price. 
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                Click to retry fetching current price
+                              </p>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => fetchRegistrationPrice()}
+                              disabled={isFormDisabled}
+                            >
+                              Retry
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
                       <Button
                         type="submit"
                         variant="festival"
@@ -1011,7 +1114,12 @@ const BusinessPitchRegister = () => {
                         className="w-full"
                         disabled={isFormDisabled || categories.length === 0}
                       >
-                        {isUploadingImages ? (
+                        {priceLoading ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Loading Price...
+                          </>
+                        ) : isUploadingImages ? (
                           <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             Uploading Images...
@@ -1027,12 +1135,14 @@ const BusinessPitchRegister = () => {
                             Preparing Payment...
                           </>
                         ) : (
-                          "Register & Pay Entry Fee"
+                          `Register & Pay ₦${registrationPrice.toLocaleString()}`
                         )}
                       </Button>
                       <p className="text-xs text-muted-foreground text-center mt-2">
-                        You will be redirected to payment gateway after form
-                        validation
+                        {priceLoading 
+                          ? "Please wait while we load the registration details"
+                          : "You will be redirected to payment gateway after form validation"
+                        }
                       </p>
                     </div>
                   </form>

@@ -99,77 +99,88 @@ const LoginPage = () => {
     }));
   };
 
-  const handleNomineeLogin = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+const handleNomineeLogin = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
 
-    // Set timeout for slow network detection
-    const timeoutId = setTimeout(() => {
-      toast({
-        title: "Network Slow",
-        description:
-          "Connection is taking longer than usual. Please refresh and try again.",
-        variant: "destructive",
-      });
-    }, 120000);
+  // Set timeout for slow network detection
+  const timeoutId = setTimeout(() => {
+    toast({
+      title: "Network Slow",
+      description:
+        "Connection is taking longer than usual. Please refresh and try again.",
+      variant: "destructive",
+    });
+  }, 120000);
 
-    try {
-      const response = await fetch(
-        "https://api.ibadanmarketsquare.ng/api/v1/account/authenticateuser",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH`,
-            // Alternative header format if the above doesn't work:
-            "X-API-Key": "H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH",
-          },
-          body: JSON.stringify({
-            email: loginData.loginEmail,
-            password: loginData.loginPassword,
-            ip: "string",
-            browser: "string",
-          }),
-        }
-      );
+  try {
+    const response = await fetch(
+      "https://api.ibadanmarketsquare.ng/api/v1/account/authenticateuser",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH`,
+          // Alternative header format if the above doesn't work:
+          "X-API-Key": "H7QzFHJx4w46fI5Uzi4RTYJUINx450vtTwlEXpdgYUH",
+        },
+        body: JSON.stringify({
+          email: loginData.loginEmail,
+          password: loginData.loginPassword,
+          ip: "string",
+          browser: "string",
+        }),
+      }
+    );
 
-      // Clear timeout if request completes within 10 seconds
-      clearTimeout(timeoutId);
+    // Clear timeout if request completes within 2 minutes
+    clearTimeout(timeoutId);
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (response.ok) {
+    if (response.ok) {
+      // Get user type from response
+      const userType = data.data?.userType || data.data?.user?.userType;
+      
+      // Store auth token
+      login(data.data.userId);
+
+      // Navigate based on user type
+      if (userType === "Admin") {
+        toast({
+          title: "Admin Login Successful!",
+          description: "Welcome to the super admin dashboard.",
+        });
+        navigate("/super-admin");
+      } else {
+        // Default to nominee dashboard for all other user types
         toast({
           title: "Login Successful!",
           description: "Welcome to your nominee dashboard.",
         });
-
-        // Store auth token if provided in response
-        login(data.data.userId);
-
         navigate("/nominee-dashboard");
-      } else {
-        toast({
-          title: "Login Failed",
-          description: data.message || "Invalid credentials. Please try again.",
-          variant: "destructive",
-        });
       }
-    } catch (error) {
-      // Clear timeout in case of error
-      clearTimeout(timeoutId);
-
-      console.error("Login error:", error);
+    } else {
       toast({
-        title: "Connection Error",
-        description: "Unable to connect to server. Please try again later.",
+        title: "Login Failed",
+        description: data.message || "Invalid credentials. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  } catch (error) {
+    // Clear timeout in case of error
+    clearTimeout(timeoutId);
 
+    console.error("Login error:", error);
+    toast({
+      title: "Connection Error",
+      description: "Unable to connect to server. Please try again later.",
+      variant: "destructive",
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
   const uploadImage = async (imageFile) => {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
@@ -761,7 +772,7 @@ const LoginPage = () => {
         <div className="container mx-auto px-4 max-w-4xl">
           <Tabs defaultValue="nominee" className="w-full">
             <TabsList className="w-full">
-              <TabsTrigger value="nominee">Nominee Login</TabsTrigger>
+              <TabsTrigger value="nominee">Login</TabsTrigger>
               {/* <TabsTrigger value="admin">Admin Login</TabsTrigger> */}
             </TabsList>
 
@@ -772,7 +783,7 @@ const LoginPage = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 ">
                       <LogIn className="w-5 h-5 text-festival-green" />
-                      Nominee Login
+                      Login
                     </CardTitle>
                     <CardDescription>
                       Access your voting dashboard and track your progress

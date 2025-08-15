@@ -1,16 +1,13 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Star, DollarSign } from "lucide-react";
 
 interface BusinessPitchSidebarProps {
   registrationPrice: number;
 }
 
-const BusinessPitchSidebar = ({ registrationPrice }: BusinessPitchSidebarProps) => {
+const BusinessPitchSidebar = ({
+  registrationPrice,
+}: BusinessPitchSidebarProps) => {
   return (
     <div className="md:col-span-1">
       <Card className="mb-6">
@@ -39,9 +36,8 @@ const BusinessPitchSidebar = ({ registrationPrice }: BusinessPitchSidebarProps) 
         </CardHeader>
         <CardContent>
           <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>• 1st Place: ₦5,000,000 funding</li>
-            <li>• 2nd Place: ₦3,000,000 funding</li>
-            <li>• 3rd Place: ₦1,000,000 funding</li>
+            <li>• General Prize of ₦1,000,000</li>
+            <li>• Consolation Prizes</li>
             <li>• Mentorship opportunities</li>
           </ul>
         </CardContent>
